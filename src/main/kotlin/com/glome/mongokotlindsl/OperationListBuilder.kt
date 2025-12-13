@@ -10,7 +10,7 @@ class LookupBuilder {
     lateinit var from: String
     lateinit var localField: String
     lateinit var foreignField: String
-    lateinit var `as`: String
+    lateinit var alias: String
     var operations: Array<AggregationOperation> = emptyArray()
 
     fun from(from: KClass<*>) {
@@ -25,8 +25,8 @@ class LookupBuilder {
         this.foreignField = foreignField.propertyToMongoField()
     }
 
-    fun `as`(`as`: String) {
-        this.`as` = `as`
+    fun alias(alias: String) {
+        this.alias = alias
     }
 
     fun pipeline(block: OperationListBuilder.() -> Unit) {
@@ -68,7 +68,7 @@ class OperationListBuilder {
             .localField(builder.localField)
             .foreignField(builder.foreignField)
             .pipeline(*builder.operations)
-            .`as`(builder.`as`)
+            .`as`(builder.alias)
 
         operationList.add(operation)
     }
