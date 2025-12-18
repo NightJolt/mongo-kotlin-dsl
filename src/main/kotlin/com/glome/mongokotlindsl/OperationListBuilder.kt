@@ -3,18 +3,21 @@ package com.glome.mongokotlindsl
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.LookupOperation
+import org.springframework.data.mongodb.core.aggregation.VariableOperators.Let.ExpressionVariable
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 class LookupBuilder {
     lateinit var from: String
     lateinit var localField: String
-    lateinit var foreignField: String
-    lateinit var alias: String
+    var foreignField: String = "_id"
+    var alias: String? = null
+    var vars: Array<ExpressionVariable> = emptyArray()
     var operations: Array<AggregationOperation> = emptyArray()
 
     fun from(from: KClass<*>) {
         this.from = getCollectionName(from)
+        this.alias = this.alias ?: this.from
     }
 
     fun localField(localField: KProperty<*>) {
@@ -27,6 +30,12 @@ class LookupBuilder {
 
     fun alias(alias: String) {
         this.alias = alias
+    }
+
+    fun let(block: VarListBuilder.() -> Unit) {
+        val builder = VarListBuilder()
+        builder.block()
+        vars = builder.vars.toTypedArray()
     }
 
     fun pipeline(block: OperationListBuilder.() -> Unit) {
@@ -67,8 +76,9 @@ class OperationListBuilder {
             .from(builder.from)
             .localField(builder.localField)
             .foreignField(builder.foreignField)
+            .let()
             .pipeline(*builder.operations)
-            .`as`(builder.alias)
+            .`as`(builder.alias!!)
 
         operationList.add(operation)
     }

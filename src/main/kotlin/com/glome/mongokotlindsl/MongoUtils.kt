@@ -8,7 +8,12 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 fun size(field: String): AggregationExpression = ArrayOperators.Size.lengthOfArray(field)
-fun obj(field: String): ObjectId = ObjectId(field)
+fun size(field: KProperty<*>): AggregationExpression = ArrayOperators.Size.lengthOfArray(field.name)
+fun obj(value: String): ObjectId = ObjectId(value)
+fun field(value: String): String = "$$value"
+fun field(value: KProperty<*>): String = "$${value.name}"
+fun varref(value: String): String = "$$$value"
+fun varref(value: KProperty<*>): String = "$$${value.name}"
 
 fun getCollectionName(clazz: KClass<*>): String {
     val document = clazz.java.getAnnotation(Document::class.java)
