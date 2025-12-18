@@ -76,7 +76,7 @@ class OperationListBuilder {
             .from(builder.from)
             .localField(builder.localField)
             .foreignField(builder.foreignField)
-            .let()
+            .let(*builder.vars)
             .pipeline(*builder.operations)
             .`as`(builder.alias!!)
 
