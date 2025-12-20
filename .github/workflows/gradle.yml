@@ -13,6 +13,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_ACTOR: ${{ secrets.ACTOR_PAT }}
+      GITHUB_TOKEN: ${{ secrets.ACTOR_TOKEN }}
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 21
@@ -27,6 +31,3 @@ jobs:
       run: ./gradlew clean build
     - name: Publish to GitHub Packages
       run: ./gradlew publish
-      env:
-        GITHUB_ACTOR: ${{ secrets.ACTOR_PAT }}
-        GITHUB_TOKEN: ${{ secrets.ACTOR_TOKEN }}
