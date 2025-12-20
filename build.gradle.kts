@@ -47,8 +47,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/nightjolt/mongo-kotlin-dsl")
             credentials {
-                username = System.getenv("ACTOR_PAT")
-                password = System.getenv("ACTOR_TOKEN")
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
