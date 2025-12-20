@@ -37,6 +37,16 @@ publishing {
             version = "0.0.2"
         }
     }
+//    repositories {
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/nightjolt/mongo-kotlin-dsl")
+//            credentials {
+//                username = System.getenv("GITHUB_ACTOR")
+//                password = System.getenv("GITHUB_TOKEN")
+//            }
+//        }
+//    }
 }
 
 tasks.withType<Test> {
