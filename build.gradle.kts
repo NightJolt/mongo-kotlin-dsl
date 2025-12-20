@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
-    id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
     `maven-publish`
 }
@@ -14,6 +13,12 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.5")
+    }
 }
 
 dependencies {
@@ -37,16 +42,16 @@ publishing {
             version = "0.0.2"
         }
     }
-//    repositories {
-//        maven {
-//            name = "GitHubPackages"
-//            url = uri("https://maven.pkg.github.com/nightjolt/mongo-kotlin-dsl")
-//            credentials {
-//                username = System.getenv("GITHUB_ACTOR")
-//                password = System.getenv("GITHUB_TOKEN")
-//            }
-//        }
-//    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/nightjolt/mongo-kotlin-dsl")
+            credentials {
+                username = System.getenv("ACTOR_PAT")
+                password = System.getenv("ACTOR_TOKEN")
+            }
+        }
+    }
 }
 
 tasks.withType<Test> {
