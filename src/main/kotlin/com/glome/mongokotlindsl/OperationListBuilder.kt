@@ -3,63 +3,13 @@ package com.glome.mongokotlindsl
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.LookupOperation
-import org.springframework.data.mongodb.core.aggregation.VariableOperators.Let.ExpressionVariable
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
-
-class LookupBuilder {
-    lateinit var from: String
-    lateinit var localField: String
-    var foreignField: String = "_id"
-    var alias: String? = null
-    var vars: Array<ExpressionVariable> = emptyArray()
-    var operations: Array<AggregationOperation> = emptyArray()
-
-    fun from(from: KClass<*>) {
-        this.from = getCollectionName(from)
-        this.alias = this.alias ?: this.from
-    }
-
-    fun localField(localField: KProperty<*>) {
-        this.localField = localField.propertyToMongoField()
-    }
-
-    fun foreignField(foreignField: KProperty<*>) {
-        this.foreignField = foreignField.propertyToMongoField()
-    }
-
-    fun alias(alias: String) {
-        this.alias = alias
-    }
-
-    fun let(block: VarListBuilder.() -> Unit) {
-        val builder = VarListBuilder()
-        builder.block()
-        vars = builder.vars.toTypedArray()
-    }
-
-    fun pipeline(block: OperationListBuilder.() -> Unit) {
-        val builder = OperationListBuilder()
-        builder.block()
-        operations = builder.operationList.toTypedArray()
-    }
-}
-
-class UnwindBuilder {
-    lateinit var field: String
-    var preserveNullAndEmptyArrays: Boolean = false
-
-    fun field(field: String) {
-        this.field = field
-    }
-
-    fun preserveNullAndEmptyArrays(preserve: Boolean) {
-        this.preserveNullAndEmptyArrays = preserve
-    }
-}
 
 class OperationListBuilder {
     val operationList = mutableListOf<AggregationOperation>()
+
+    operator fun AggregationOperation.unaryPlus() {
+        operationList.add(this)
+    }
 
     inline fun match(block: CriteriaListBuilder.() -> Unit) {
         val builder = CriteriaListBuilder()
@@ -68,19 +18,41 @@ class OperationListBuilder {
         operationList.add(Aggregation.match(builder.criteriaList.first()))
     }
 
+    fun limit(limit: Long) {
+        operationList.add(Aggregation.limit(limit))
+    }
+
     fun lookup(block: LookupBuilder.() -> Unit) {
         val builder = LookupBuilder()
         builder.block()
 
         val operation = LookupOperation.newLookup()
             .from(builder.from)
-            .localField(builder.localField)
-            .foreignField(builder.foreignField)
-            .let(*builder.vars)
-            .pipeline(*builder.operations)
-            .`as`(builder.alias!!)
 
-        operationList.add(operation)
+        if (builder.localField != null) {
+            operation
+                .localField(builder.localField!!)
+                .foreignField(builder.foreignField)
+        }
+
+        if (builder.vars.isNotEmpty()) {
+            operation.let(*builder.vars)
+        }
+
+        if (builder.operations.isNotEmpty()) {
+            operation.pipeline(*builder.operations)
+        }
+
+        operationList.add(operation.`as`(builder.alias!!))
+
+        if (builder.flatten != null) {
+            operationList.add(
+                Aggregation.unwind(
+                    builder.alias!!,
+                    builder.flatten!!
+                )
+            )
+        }
     }
 
     fun unwind(block: UnwindBuilder.() -> Unit) {
@@ -93,5 +65,39 @@ class OperationListBuilder {
                 builder.preserveNullAndEmptyArrays
             )
         )
+    }
+
+    fun project(block: ProjectListBuilder.() -> Unit) {
+        val builder = ProjectListBuilder()
+        builder.block()
+
+        var projectBuilder = Aggregation.project()
+
+        for (include in builder.includes) {
+            projectBuilder = projectBuilder.andInclude(include)
+        }
+
+        if (builder.excludeId) {
+            projectBuilder = projectBuilder.andExclude("_id")
+        }
+
+        for ((source, alias) in builder.aliases) {
+            projectBuilder = projectBuilder.and(alias).`as`(source)
+        }
+
+        operationList.add(projectBuilder)
+    }
+
+    fun addFields(block: AddFieldsBuilder.() -> Unit) {
+        val builder = AddFieldsBuilder()
+        builder.block()
+
+        val addFieldsOperation = Aggregation.addFields()
+
+        for ((field, expression) in builder.fields) {
+            addFieldsOperation.addField(field).withValue(expression)
+        }
+
+        operationList.add(addFieldsOperation.build())
     }
 }

@@ -8,12 +8,17 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 fun size(field: String): AggregationExpression = ArrayOperators.Size.lengthOfArray(field)
-fun size(field: KProperty<*>): AggregationExpression = ArrayOperators.Size.lengthOfArray(field.name)
+fun size(field: KProperty<*>): AggregationExpression = ArrayOperators.Size.lengthOfArray(field.propertyToMongoField())
 fun obj(value: String): ObjectId = ObjectId(value)
 fun field(value: String): String = "$$value"
-fun field(value: KProperty<*>): String = "$${value.name}"
+fun field(value: KProperty<*>): String = "$${value.propertyToMongoField()}"
 fun varref(value: String): String = "$$$value"
-fun varref(value: KProperty<*>): String = "$$${value.name}"
+fun varref(value: KProperty<*>): String = "$$${value.propertyToMongoField()}"
+
+infix fun String.dot(subfield: String): String = "$this.$subfield"
+infix fun String.dot(subfield: KProperty<*>): String = "$this.${subfield.propertyToMongoField()}"
+infix fun KProperty<*>.dot(subfield: String): String = "${this.propertyToMongoField()}.$subfield"
+infix fun KProperty<*>.dot(subfield: KProperty<*>): String = "${this.propertyToMongoField()}.${subfield.propertyToMongoField()}"
 
 fun getCollectionName(clazz: KClass<*>): String {
     val document = clazz.java.getAnnotation(Document::class.java)
@@ -23,8 +28,9 @@ fun getCollectionName(clazz: KClass<*>): String {
 }
 
 fun KProperty<*>.propertyToMongoField(): String {
+    if (this.name == "id") return "_id"
+
     return this.name.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
-        .let { if (this.name == "id") "_$it" else it }
 }
 
 inline fun <reified T, reified O> MongoTemplate.run(
