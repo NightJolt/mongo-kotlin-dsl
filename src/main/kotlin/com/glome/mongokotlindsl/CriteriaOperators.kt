@@ -63,4 +63,14 @@ object CriteriaOperators {
         return Criteria.where(this.propertyToMongoField()).lte(value)
     }
     // endregion
+
+    // region In
+    infix fun String.`in`(value: List<Any>): Criteria {
+        return Criteria.where(this).`in`(value)
+    }
+
+    infix fun KProperty<*>.`in`(value: List<Any>): Criteria {
+        return Criteria.where(this.propertyToMongoField()).`in`(value)
+    }
+    // endregion
 }
