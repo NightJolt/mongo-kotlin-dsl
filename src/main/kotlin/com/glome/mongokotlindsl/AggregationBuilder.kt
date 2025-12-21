@@ -4,7 +4,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.LookupOperation
 
-class OperationListBuilder {
+class AggregationBuilder {
     val operationList = mutableListOf<AggregationOperation>()
 
     operator fun AggregationOperation.unaryPlus() {

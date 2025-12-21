@@ -41,8 +41,8 @@ class LookupBuilder {
         vars = builder.vars.toTypedArray()
     }
 
-    fun pipeline(block: OperationListBuilder.() -> Unit) {
-        val builder = OperationListBuilder()
+    fun pipeline(block: AggregationBuilder.() -> Unit) {
+        val builder = AggregationBuilder()
         builder.block()
         operations = builder.operationList.toTypedArray()
     }

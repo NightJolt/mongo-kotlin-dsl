@@ -33,17 +33,23 @@ fun KProperty<*>.propertyToMongoField(): String {
     return this.name.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
 }
 
+class AggregationOperations(val operationList: List<AggregationOperation>) {
+    operator fun plus(operations: AggregationOperations): AggregationOperations {
+        return AggregationOperations(this.operationList + operations.operationList)
+    }
+}
+
 inline fun <reified T, reified O> MongoTemplate.run(
-    aggregation: Aggregation
+    aggregation: AggregationOperations
 ): AggregationResults<O> =
     aggregate(
-        aggregation,
+        Aggregation.newAggregation(aggregation.operationList),
         getCollectionName(T::class),
         O::class.java,
     )
 
-inline fun aggregation(block: OperationListBuilder.() -> Unit): Aggregation {
-    val builder = OperationListBuilder()
+inline fun aggregation(block: AggregationBuilder.() -> Unit): AggregationOperations {
+    val builder = AggregationBuilder()
     builder.block()
-    return Aggregation.newAggregation(builder.operationList)
+    return AggregationOperations(builder.operationList)
 }
