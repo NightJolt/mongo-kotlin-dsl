@@ -32,8 +32,6 @@ kotlin {
     }
 }
 
-group = "com.github.nightjolt"
-
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -41,7 +39,7 @@ publishing {
 
             groupId = "com.glome"
             artifactId = "mongo-kotlin-dsl"
-            version = "0.0.6"
+            version = "0.0.7"
         }
     }
     repositories {

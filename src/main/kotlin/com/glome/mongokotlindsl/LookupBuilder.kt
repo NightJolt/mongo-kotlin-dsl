@@ -14,13 +14,26 @@ class LookupBuilder {
     var operations: Array<AggregationOperation> = emptyArray()
     var flatten: Boolean? = null
 
+    fun from(from: String) {
+        this.from = from
+        this.alias = this.alias ?: this.from
+    }
+
     fun from(from: KClass<*>) {
         this.from = getCollectionName(from)
         this.alias = this.alias ?: this.from
     }
 
+    fun localField(localField: String) {
+        this.localField = localField
+    }
+
     fun localField(localField: KProperty<*>) {
         this.localField = localField.propertyToMongoField()
+    }
+
+    fun foreignField(foreignField: String) {
+        this.foreignField = foreignField
     }
 
     fun foreignField(foreignField: KProperty<*>) {
