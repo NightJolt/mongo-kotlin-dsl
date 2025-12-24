@@ -100,4 +100,21 @@ class AggregationBuilder {
 
         operationList.add(addFieldsOperation.build())
     }
+
+    fun group(block: GroupBuilder.() -> Unit) {
+        val builder = GroupBuilder()
+        builder.block()
+
+        val groupOperation = Aggregation.group(builder.fieldToGroup)
+
+        for ((lf, rf) in builder.pushFields) {
+            groupOperation.push(lf).`as`(lf)
+        }
+
+        for ((lf, rf) in builder.firstFields) {
+            groupOperation.first(rf).`as`(lf)
+        }
+
+        operationList.add(groupOperation)
+    }
 }
